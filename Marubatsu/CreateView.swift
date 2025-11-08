@@ -52,6 +52,30 @@ struct CreateView: View {
             }
             .foregroundStyle(.red)
             .padding()
+            
+            // 問題のリスト
+            List{
+                ForEach(quizzesArray) { quiz in
+                    Text(quiz.question)
+                }
+                // 並び替え
+                .onMove { indices, newOffset in
+                    quizzesArray.move(fromOffsets: indices, toOffset: newOffset)
+                    // Persist reordered array
+                    if let encoded = try? JSONEncoder().encode(quizzesArray) {
+                        UserDefaults.standard.setValue(encoded, forKey: "quiz")
+                    }
+                }
+                
+                // 削除
+                .onDelete { indexSet in
+                    quizzesArray.remove(atOffsets: indexSet)
+                    // Persist updated array after deletion
+                    if let encoded = try? JSONEncoder().encode(quizzesArray) {
+                        UserDefaults.standard.setValue(encoded, forKey: "quiz")
+                    }
+                }
+            }
         }
     }
     
