@@ -91,18 +91,18 @@ struct ContentView: View {
                 }
                 
                 // 問題作成画面へ遷移するボタン
-                        .toolbar{
-                            //配置する場所を画面上部のバーの右端に設定
-                            ToolbarItem(placement: .topBarTrailing){
-                                NavigationLink{
-                                    CreateView(quizzesArray: $quizzesArray) //遷移先の画面
-                                        .navigationTitle("問題を作ろう！")
-                                } label:{
-                                    Image(systemName: "plus")
-                                        .font(.title)
-                                }
-                            }
-                        
+                .toolbar{
+                    //配置する場所を画面上部のバーの右端に設定
+                    ToolbarItem(placement: .topBarTrailing){
+                        NavigationLink{
+                            CreateView(quizzesArray: $quizzesArray) //遷移先の画面
+                                .navigationTitle("問題を作ろう！")
+                        } label:{
+                            Image(systemName: "plus")
+                                .font(.title)
+                        }
+                    }
+                    
                 }
             }
         }
@@ -145,7 +145,7 @@ struct ContentView: View {
             alertTitle = "不正解"
         }
         showingAlert = true // アラートタイトルを表示させる
-            
+        
     }
     
 }//ContentViewがここまで

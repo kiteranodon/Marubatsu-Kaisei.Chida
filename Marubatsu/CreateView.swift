@@ -55,8 +55,14 @@ struct CreateView: View {
             
             // 問題のリスト
             List{
-                ForEach(quizzesArray) { quiz in
-                    Text(quiz.question)
+                ForEach(quizzesArray.indices, id: \.self) { index in
+                    VStack(alignment: .leading){
+                        HStack(){
+                            Text("問題: \(quizzesArray[index].question)")
+                            Spacer()
+                            Text("解答: \(quizzesArray[index].answer ? "O" : "X")")
+                        }
+                    }
                 }
                 // 並び替え
                 .onMove { indices, newOffset in
@@ -76,8 +82,16 @@ struct CreateView: View {
                     }
                 }
             }
+            // ナビゲーションバーに編集ボタンを追加
+            .toolbar(content: {
+                EditButton()
+            })
+            
+            .navigationTitle("問題を作ろう")
         }
+        .padding()
     }
+    
     
     //問題追加・保存の関数
     func addQuiz(question: String, answer: String){
