@@ -23,60 +23,87 @@ struct ContentView: View {
         Quiz(question: "Textは文字列を表示する際に利用する", answer: true)
     ]
     
+    //UserDafaultsから問題を読み込む(Data型)
+    @AppStorage("quiz") var quizzesdata = Data()
+    @State var quizzesArray: [Quiz] = [] //問題を入れておく配列
+    
     @State var currentQuestionNum: Int = 0 //今、何問目の数字
     @State var showingAlert = false //アラートの表示 非表示を管理
     @State var alertTitle = "" // 正解か不正解の文字を入れる用の変数
     
+    init(){
+        if let decodedQuizzes = try? JSONDecoder().decode([Quiz].self, from: quizzesdata) {
+            _quizzesArray = State(initialValue: decodedQuizzes)
+        }
+    }
     
     var body: some View {
-        
-        GeometryReader { geometry in
-            VStack {
-                Text(showQuestion()) //問題文を表示
-                    .padding() //上下左右余白
-                    .frame(width: geometry.size.width * 0.85, alignment: .leading) //横幅を親ビューの0.85倍に, 左寄せに
-                    .font(.system(size: 25)) //フォントサイズを25に
-                    .fontDesign(.rounded) //丸みのあるフォントに
-                    .background(.yellow) //背景を黄色に
-                
-                
-                Spacer() // 余白
-                
-                HStack{
-                    //Oボタン
-                    Button {
-                        checkAnswer(yourAnswer: true) //ボタンが押されたときの動作
-                    } label: {
-                        Text("O") //ボタンの見た目
-                    }
-                    .frame(width: geometry.size.width * 0.4,
-                           height: geometry.size.width * 0.4) // 横幅と高さを親ビューの0.4倍を指定
-                    .font(.system(size: 100, weight: .bold)) // フォントサイズ: 100 ,太字
-                    .foregroundStyle(.white) // 文字の色: 白
-                    .background(.red) // 背景色: 赤
+        NavigationStack{
+            GeometryReader { geometry in
+                VStack {
+                    Text(showQuestion()) //問題文を表示
+                        .padding() //上下左右余白
+                        .frame(width: geometry.size.width * 0.85, alignment: .leading) //横幅を親ビューの0.85倍に, 左寄せに
+                        .font(.system(size: 25)) //フォントサイズを25に
+                        .fontDesign(.rounded) //丸みのあるフォントに
+                        .background(.yellow) //背景を黄色に
                     
-                    //Xボタン
-                    Button {
-                        checkAnswer(yourAnswer: false) //ボタンが押されたときの動作
-                    } label: {
-                        Text("X") //ボタンの見た目
-                    }
-                    .frame(width: geometry.size.width * 0.4,
-                           height: geometry.size.width * 0.4) // 横幅と高さを親ビューの0.4倍を指定
-                    .font(.system(size: 100, weight: .bold)) // フォントサイズ: 100 ,太字
-                    .foregroundStyle(.white) // 文字の色: 白
-                    .background(.blue) // 背景色: 青
                     
+                    Spacer() // 余白
+                    
+                    HStack{
+                        //Oボタン
+                        Button {
+                            checkAnswer(yourAnswer: true) //ボタンが押されたときの動作
+                        } label: {
+                            Text("O") //ボタンの見た目
+                        }
+                        .frame(width: geometry.size.width * 0.4,
+                               height: geometry.size.width * 0.4) // 横幅と高さを親ビューの0.4倍を指定
+                        .font(.system(size: 100, weight: .bold)) // フォントサイズ: 100 ,太字
+                        .foregroundStyle(.white) // 文字の色: 白
+                        .background(.red) // 背景色: 赤
+                        
+                        //Xボタン
+                        Button {
+                            checkAnswer(yourAnswer: false) //ボタンが押されたときの動作
+                        } label: {
+                            Text("X") //ボタンの見た目
+                        }
+                        .frame(width: geometry.size.width * 0.4,
+                               height: geometry.size.width * 0.4) // 横幅と高さを親ビューの0.4倍を指定
+                        .font(.system(size: 100, weight: .bold)) // フォントサイズ: 100 ,太字
+                        .foregroundStyle(.white) // 文字の色: 白
+                        .background(.blue) // 背景色: 青
+                        
+                    }
                 }
-            }
-            .padding()
-            // ズレを直すのに親ビューのサイズをVStackに適用
-            .frame(width: geometry.size.width,
-                   height: geometry.size.height)
-            
-            // 回答時のアラート
-            .alert(alertTitle, isPresented: $showingAlert) {
-                Button("OK", role: .cancel) {/* 今回は処理なし */}
+                .padding()
+                // ズレを直すのに親ビューのサイズをVStackに適用
+                .frame(width: geometry.size.width,
+                       height: geometry.size.height)
+                
+                .navigationTitle(Text("マルバツクイズ"))
+                
+                // 回答時のアラート
+                .alert(alertTitle, isPresented: $showingAlert) {
+                    Button("OK", role: .cancel) {/* 今回は処理なし */}
+                }
+                
+                // 問題作成画面へ遷移するボタン
+                        .toolbar{
+                            //配置する場所を画面上部のバーの右端に設定
+                            ToolbarItem(placement: .topBarTrailing){
+                                NavigationLink{
+                                    CreateView(quizzesArray: $quizzesArray) //遷移先の画面
+                                        .navigationTitle("問題を作ろう！")
+                                } label:{
+                                    Image(systemName: "plus")
+                                        .font(.title)
+                                }
+                            }
+                        
+                }
             }
         }
     }
@@ -84,19 +111,28 @@ struct ContentView: View {
     // 問題を表示する関数
     func showQuestion() -> String {
         // 配列から〇〇問目の問題文を取り出して代入
-        let question = quizExamples[currentQuestionNum].question
+        var question = "問題がありません"
+        
+        // 問題があるかどうかチェック
+        if !quizzesArray.isEmpty { //問題があるとき
+            let quiz = quizzesArray[currentQuestionNum]
+            question = quiz.question
+        }
+        
         return question
     }
     
     //回答をチェックする関数、正解なら次の問題を表示
     func checkAnswer(yourAnswer: Bool){
-        let quiz = quizExamples[currentQuestionNum] //表示されているクイズを取り出す
+        
+        if quizzesArray.isEmpty { return }
+        let quiz = quizzesArray[currentQuestionNum] //表示されているクイズを取り出す
         let ans = quiz.answer // クイズから解答を取り出す
         if yourAnswer == ans { //正解のとき
             alertTitle = "正解"
             
             //現在の問題番号が問題数(quizExample.count)を超えないように場合分け
-            if currentQuestionNum + 1 < quizExamples.count {
+            if currentQuestionNum + 1 < quizzesArray.count {
                 //currentQuestionNumに1を追加して次の問題に進む
                 currentQuestionNum += 1
                 //currentQuestionNum = currentQuestionNum + 1
