@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct CreateView: View {
-    
-    
+    @Environment(\.dismiss) private var dismiss
+
     @Binding var quizzesArray: [Quiz] //回答画面で読み込んだ問題を一時的にべつの配列へ
     @State private var questionText = "" //テキストフィールドの文字を受け取る
     @State private var selectedAnswer = "O" //ピッカーで選ばれた解答を受け取る
@@ -52,6 +52,25 @@ struct CreateView: View {
             }
             .foregroundStyle(.red)
             .padding()
+            
+            
+            //戻るボタンの編集
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    HStack(spacing: 8) {
+                        Button(
+                            action: {
+                                dismiss()
+                            }, label: {
+                                Image(systemName: "arrow.uturn.backward")
+                                Text("OXクイズ")
+                            }
+                        )
+                            
+                    }
+                }
+            }
             
             // 問題のリスト
             List{
@@ -136,3 +155,4 @@ struct CreateView: View {
 #Preview {
     //CreateView()
 }
+
