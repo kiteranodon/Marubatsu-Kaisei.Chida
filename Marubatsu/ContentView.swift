@@ -104,6 +104,14 @@ struct ContentView: View {
                     }
                     
                 }
+                .onAppear {
+                    // 編集画面から戻ってきたときに常に1問目を表示
+                    currentQuestionNum = 0
+                }
+                .onChange(of: quizzesArray) { newValue, _ in
+                    // 問題が更新されたときも1問目に戻す
+                    currentQuestionNum = 0
+                }
             }
         }
     }
